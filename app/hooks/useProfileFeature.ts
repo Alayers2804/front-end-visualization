@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
-import api from "../lib/api"; // Axios instance
+// useProfileFeature.ts
+
+import { useEffect, useState, useCallback } from "react";
+import api from "../lib/api";
 
 export function useProfilePlot(features: string[], returnBase64 = true) {
   const [images, setImages] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchPlot = useCallback(() => {
+    setError(null); // reset error
     api
       .get("/profile-summary/plot", {
         params: { features, return_base64: returnBase64 }
@@ -14,19 +17,28 @@ export function useProfilePlot(features: string[], returnBase64 = true) {
       .catch(err => setError(err.message));
   }, [features, returnBase64]);
 
-  return { images, error };
+  useEffect(() => {
+    fetchPlot();
+  }, [fetchPlot]);
+
+  return { images, error, retry: fetchPlot };
 }
 
 export function useProfileSummary() {
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchSummary = useCallback(() => {
+    setError(null);
     api
       .get("/profile-summary")
       .then(res => setSummary(res.data))
       .catch(err => setError(err.message));
   }, []);
 
-  return { summary, error };
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
+  return { summary, error, retry: fetchSummary };
 }
