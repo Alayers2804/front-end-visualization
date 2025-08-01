@@ -7,7 +7,11 @@ interface FeaturePlotResult {
   used_features: string[];
 }
 
-export function useFeaturePlot(features: string[], returnBase64 = true) {
+export function useFeaturePlot(
+  features: string[],
+  returnBase64 = true,
+  refreshKey = 0
+) {
   const [plot, setPlot] = useState<FeaturePlotResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,15 +22,12 @@ export function useFeaturePlot(features: string[], returnBase64 = true) {
     setLoading(true);
     api
       .get("/features/plot", {
-        params: {
-          features,
-          return_base64: returnBase64
-        }
+        params: { features, return_base64: returnBase64 }
       })
       .then(res => setPlot(res.data))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [features, returnBase64]);
+  }, [features, returnBase64, refreshKey]); // added refreshKey
 
   return { plot, error, loading };
 }
@@ -43,7 +44,8 @@ interface FeatureRelevanceResult {
 }
 
 export function useImportantFeatures(
-  features: string[] = ["USIA", "PEKERJAAN", "PENDIDIKAN TERAKHIR"]
+  features: string[] = ["USIA", "PEKERJAAN", "PENDIDIKAN TERAKHIR"],
+  refreshKey = 0
 ) {
   const [data, setData] = useState<FeatureRelevanceResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,13 +56,11 @@ export function useImportantFeatures(
 
     setLoading(true);
     api
-      .get("/features", {
-        params: { features }
-      })
+      .get("/features", { params: { features } })
       .then(res => setData(res.data))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [features]);
+  }, [features, refreshKey]); // added refreshKey
 
   return { data, error, loading };
 }

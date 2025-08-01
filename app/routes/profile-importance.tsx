@@ -1,13 +1,22 @@
 import { useState } from "react";
-import { useProfilePlot, useProfileSummary } from "../hooks/useProfileFeature"; // Adjust path as needed
+import { useProfilePlot, useProfileSummary } from "../hooks/useProfileFeature";
 
 const defaultFeatures = ["USIA", "PEKERJAAN", "PENDIDIKAN TERAKHIR"];
 
 export default function ProfileImportance() {
   const [features, setFeatures] = useState<string[]>(defaultFeatures);
 
-  const { images, error: plotError } = useProfilePlot(features);
-  const { summary, error: summaryError } = useProfileSummary();
+  const {
+    images,
+    error: plotError,
+    retry: retryPlot
+  } = useProfilePlot(features);
+
+  const {
+    summary,
+    error: summaryError,
+    retry: retrySummary
+  } = useProfileSummary();
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const input = event.target.value;
@@ -36,9 +45,30 @@ export default function ProfileImportance() {
       </div>
 
       {(plotError || summaryError) && (
-        <p className="text-red-500">
-          {plotError || summaryError}
-        </p>
+        <div className="space-y-2">
+          {plotError && (
+            <div className="text-red-500">
+              <p>Error loading plot: {plotError}</p>
+              <button
+                onClick={retryPlot}
+                className="text-sm text-blue-600 underline hover:text-blue-800"
+              >
+                Coba lagi
+              </button>
+            </div>
+          )}
+          {summaryError && (
+            <div className="text-red-500">
+              <p>Error loading summary: {summaryError}</p>
+              <button
+                onClick={retrySummary}
+                className="text-sm text-blue-600 underline hover:text-blue-800"
+              >
+                Coba lagi
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {images?.image_base64 && (
