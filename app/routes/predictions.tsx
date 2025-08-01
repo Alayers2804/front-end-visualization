@@ -9,19 +9,19 @@ export default function Predictions() {
     data: predictData,
     loading: predictLoading,
     error: predictError,
-  } = usePredict(2, "JUMLAH_KASUS");
+  } = usePredict(2, "JUMLAH_KASUS", retryKey);
 
   const {
     plotData,
     loading: plotLoading,
     error: plotError,
-  } = usePredictionPlot(2, "JUMLAH_KASUS", true);
+  } = usePredictionPlot(2, "JUMLAH_KASUS", true, retryKey);
 
   const {
     result: testResult,
     loading: testLoading,
     error: testError,
-  } = usePredictionTest(3, "JUMLAH_KASUS");
+  } = usePredictionTest(3, "JUMLAH_KASUS", retryKey);
 
   const retry = () => setRetryKey(prev => prev + 1);
 

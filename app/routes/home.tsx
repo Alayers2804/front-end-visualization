@@ -17,9 +17,10 @@ export default function Home() {
         <h1 className="text-3xl font-bold mb-4">Website Visualisasi Rehab Narkoba</h1>
         <p className="mb-6">Silakan pilih fitur:</p>
         <div className="flex flex-col gap-4">
-          <Link to="/visualizations" className="text-blue-500 underline">Visualisasi Data</Link>
           <Link to="/predictions" className="text-blue-500 underline">Prediksi</Link>
           <Link to="/add-data" className="text-blue-500 underline">Tambah Data</Link>
+          <Link to="/profile-importance" className="text-blue-500 underline">Profile Importance</Link>
+          <Link to="/features" className="text-blue-500 underline">Features Importance</Link>
         </div>
       </main>
     </>

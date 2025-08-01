@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import apiBaseUrl from "../lib/api";
+import api from "../lib/api";
 
 interface ForecastItem {
   month: string;
@@ -12,7 +11,7 @@ interface PredictResponse {
   target_column: string;
 }
 
-export function usePredict(nMonths = 2, targetColumn = "JUMLAH_KASUS") {
+export function usePredict(nMonths = 2, targetColumn = "JUMLAH_KASUS", retryKey = 0) {
   const [data, setData] = useState<PredictResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +19,7 @@ export function usePredict(nMonths = 2, targetColumn = "JUMLAH_KASUS") {
   useEffect(() => {
     const fetchPrediction = async () => {
       try {
-        const res = await axios.get<PredictResponse>(`${apiBaseUrl}/predict`, {
+        const res = await api.get<PredictResponse>("/predict", {
           params: { n_months: nMonths, target_column: targetColumn }
         });
         setData(res.data);
@@ -31,7 +30,7 @@ export function usePredict(nMonths = 2, targetColumn = "JUMLAH_KASUS") {
       }
     };
     fetchPrediction();
-  }, [nMonths, targetColumn]);
+  }, [nMonths, targetColumn, retryKey]);
 
   return { data, loading, error };
 }
@@ -54,7 +53,7 @@ interface PredictionTestResponse {
   actual_vs_predicted: ActualVsPredicted[];
 }
 
-export function usePredictionTest(testSize = 3, targetColumn = "JUMLAH_KASUS") {
+export function usePredictionTest(testSize = 3, targetColumn = "JUMLAH_KASUS", retryKey = 0) {
   const [result, setResult] = useState<PredictionTestResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +61,7 @@ export function usePredictionTest(testSize = 3, targetColumn = "JUMLAH_KASUS") {
   useEffect(() => {
     const fetchTest = async () => {
       try {
-        const res = await axios.get<PredictionTestResponse>(`${apiBaseUrl}/predict/test`, {
+        const res = await api.get("/predict/test", {
           params: { test_size: testSize, target_column: targetColumn }
         });
         setResult(res.data);
@@ -73,7 +72,7 @@ export function usePredictionTest(testSize = 3, targetColumn = "JUMLAH_KASUS") {
       }
     };
     fetchTest();
-  }, [testSize, targetColumn]);
+  }, [testSize, targetColumn, retryKey]);
 
   return { result, loading, error };
 }
@@ -88,7 +87,8 @@ interface PredictionPlotResponse {
 export function usePredictionPlot(
   nMonths = 2,
   targetColumn = "JUMLAH_KASUS",
-  base64 = true
+  base64 = true,
+  retryKey = 0
 ) {
   const [plotData, setPlotData] = useState<PredictionPlotResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,7 +97,7 @@ export function usePredictionPlot(
   useEffect(() => {
     const fetchPlot = async () => {
       try {
-        const res = await axios.get<PredictionPlotResponse>(`${apiBaseUrl}/predict/plot`, {
+        const res = await api.get("/predict/plot", {
           params: {
             n_months: nMonths,
             target_column: targetColumn,
@@ -112,7 +112,7 @@ export function usePredictionPlot(
       }
     };
     fetchPlot();
-  }, [nMonths, targetColumn, base64]);
+  }, [nMonths, targetColumn, base64, retryKey]);
 
   return { plotData, loading, error };
 }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import apiBaseUrl from "../lib/api";
+import api from "../lib/api"; // Axios instance
 
 interface FeaturePlotResult {
   image_base64?: string;
@@ -17,8 +16,8 @@ export function useFeaturePlot(features: string[], returnBase64 = true) {
     if (!features || features.length === 0) return;
 
     setLoading(true);
-    axios
-      .get(`${apiBaseUrl}/features/plot`, {
+    api
+      .get("/features/plot", {
         params: {
           features,
           return_base64: returnBase64
@@ -54,8 +53,8 @@ export function useImportantFeatures(
     if (!features || features.length === 0) return;
 
     setLoading(true);
-    axios
-      .get(`${apiBaseUrl}/features`, {
+    api
+      .get("/features", {
         params: { features }
       })
       .then(res => setData(res.data))
