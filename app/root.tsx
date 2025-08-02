@@ -45,12 +45,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-row">
+    <div className="h-screen flex flex-row overflow-hidden">
       <NavBar />
 
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 container mx-auto px-6 py-8">
-          <Outlet />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto px-6 py-8">
+            <Outlet />
+          </div>
         </main>
 
         <Footer />
@@ -58,6 +60,7 @@ export default function App() {
     </div>
   );
 }
+
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";

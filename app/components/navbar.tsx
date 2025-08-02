@@ -18,6 +18,7 @@ export function NavBar() {
         <Link to="/add-data" className={linkClasses("/add-data")}>➕ Tambah Data</Link>
         <Link to="/profile-importance" className={linkClasses("/profile-importance")}>📊 Profile Importance</Link>
         <Link to="/features" className={linkClasses("/features")}>🧬 Features Importance</Link>
+        <Link to="/settings" className={linkClasses("/settings")}>⚙️ Pengaturan</Link>
       </nav>
     </aside>
   );

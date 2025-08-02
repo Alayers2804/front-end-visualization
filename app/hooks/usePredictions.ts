@@ -11,29 +11,29 @@ interface PredictResponse {
   target_column: string;
 }
 
-export function usePredict(nMonths = 2, targetColumn = "JUMLAH_KASUS", retryKey = 0) {
+export function usePredict() {
   const [data, setData] = useState<PredictResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPrediction = async () => {
-      try {
-        const res = await api.get<PredictResponse>("/predict", {
-          params: { n_months: nMonths, target_column: targetColumn }
-        });
-        setData(res.data);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch prediction");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPrediction();
-  }, [nMonths, targetColumn, retryKey]);
+  const fetch = async (nMonths = 2, targetColumn = "JUMLAH_KASUS") => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get<PredictResponse>("/predict", {
+        params: { n_months: nMonths, target_column: targetColumn }
+      });
+      setData(res.data);
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch prediction");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { data, loading, error };
+  return { data, loading, error, fetch };
 }
+
 
 
 interface ActualVsPredicted {
@@ -53,28 +53,27 @@ interface PredictionTestResponse {
   actual_vs_predicted: ActualVsPredicted[];
 }
 
-export function usePredictionTest(testSize = 3, targetColumn = "JUMLAH_KASUS", retryKey = 0) {
+export function usePredictionTest() {
   const [result, setResult] = useState<PredictionTestResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchTest = async () => {
-      try {
-        const res = await api.get("/predict/test", {
-          params: { test_size: testSize, target_column: targetColumn }
-        });
-        setResult(res.data);
-      } catch (err: any) {
-        setError(err.message || "Error testing prediction");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTest();
-  }, [testSize, targetColumn, retryKey]);
+  const fetch = async (testSize = 3, targetColumn = "JUMLAH_KASUS") => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get("/predict/test", {
+        params: { test_size: testSize, target_column: targetColumn }
+      });
+      setResult(res.data);
+    } catch (err: any) {
+      setError(err.message || "Error testing prediction");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { result, loading, error };
+  return { result, loading, error, fetch };
 }
 
 
@@ -84,35 +83,130 @@ interface PredictionPlotResponse {
   target_column: string;
 }
 
-export function usePredictionPlot(
-  nMonths = 2,
-  targetColumn = "JUMLAH_KASUS",
-  base64 = true,
-  retryKey = 0
-) {
+export function usePredictionPlot() {
   const [plotData, setPlotData] = useState<PredictionPlotResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetch = async (nMonths = 2, targetColumn = "JUMLAH_KASUS", base64 = true) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get("/predict/plot", {
+        params: { n_months: nMonths, target_column: targetColumn, return_base64: base64 }
+      });
+      setPlotData(res.data);
+    } catch (err: any) {
+      setError(err.message || "Error fetching plot");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { plotData, loading, error, fetch };
+}
+
+export function usePredictByArea(
+  area: string | null,
+  nMonths = 2,
+  targetColumn = "JUMLAH_KASUS"
+) {
+  const [forecast, setForecast] = useState<any[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = async () => {
+    if (!area) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get("/predict/predict-by-area", {
+        params: { area, n_months: nMonths, target_column: targetColumn }
+      });
+      if (res.data.error) {
+        setError(res.data.error);
+        setForecast(null);
+      } else {
+        setForecast(res.data.forecast || []);
+      }
+    } catch (err: any) {
+      setError(err.message || "Error fetching prediction");
+      setForecast(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retry = () => fetch(); // you can still call retry manually
+
+  return { forecast, loading, error, fetch, retry };
+}
+
+export function useAvailableAreas() {
+  const [areas, setAreas] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const retry = () => setRetryKey(prev => prev + 1);
+
   useEffect(() => {
-    const fetchPlot = async () => {
+    const fetchAreas = async () => {
+      setError(null);
+      setLoading(true);
       try {
-        const res = await api.get("/predict/plot", {
-          params: {
-            n_months: nMonths,
-            target_column: targetColumn,
-            return_base64: base64
-          }
-        });
-        setPlotData(res.data);
+        const res = await api.get("/predict/available-areas");
+        setAreas(res.data.areas || []);
       } catch (err: any) {
-        setError(err.message || "Error fetching plot");
+        setError(err.message || "Error fetching areas");
+        setAreas([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchPlot();
-  }, [nMonths, targetColumn, base64, retryKey]);
 
-  return { plotData, loading, error };
+    fetchAreas();
+  }, [retryKey]);
+
+  return { areas, loading, error, retry };
+}
+
+interface HeatmapResponse {
+  full_map_base64?: string;
+  focused_map_base64?: string;
+}
+
+export function useHeatmap(month?: string, retryKey = 0) {
+  const [imageUrl, setImageUrl] = useState<HeatmapResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHeatmap = async () => {
+      setError(null);
+      setImageUrl(null);
+      setLoading(true);
+
+      try {
+        const response = await api.get("/predict/heatmap", {
+          params: month ? { month } : {},
+        });
+
+        if (response.data?.error) {
+          setError(response.data.error);
+          return;
+        }
+
+        setImageUrl(response.data);
+      } catch (err: any) {
+        setError(err.message || "Gagal memuat heatmap");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHeatmap();
+  }, [month, retryKey]);
+
+  return { imageUrl, loading, error };
 }
