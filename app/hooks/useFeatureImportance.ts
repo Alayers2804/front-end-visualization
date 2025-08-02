@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api"; // Axios instance
+import qs from "qs";
 
 interface FeaturePlotResult {
   image_base64?: string;
@@ -7,30 +8,33 @@ interface FeaturePlotResult {
   used_features: string[];
 }
 
-export function useFeaturePlot(
-  features: string[],
-  returnBase64 = true,
-  refreshKey = 0
-) {
+export function useFeaturePlot() {
   const [plot, setPlot] = useState<FeaturePlotResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchPlot = async (features: string[], returnBase64 = true) => {
     if (!features || features.length === 0) return;
-    setError(null);
-    setPlot(null); 
-    setLoading(true);
-    api
-      .get("/features/plot", {
-        params: { features, return_base64: returnBase64 }
-      })
-      .then(res => setPlot(res.data))
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [features, returnBase64, refreshKey]); // added refreshKey
 
-  return { plot, error, loading };
+    setLoading(true);
+    setError(null);
+    setPlot(null);
+
+    try {
+      const res = await api.get("/features/plot", {
+        params: { features, return_base64: returnBase64 },
+        paramsSerializer: (params) =>
+          qs.stringify(params, { arrayFormat: "repeat" }),
+      });
+      setPlot(res.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { plot, error, loading, fetchPlot };
 }
 
 interface FeatureRelevanceResult {
@@ -44,25 +48,32 @@ interface FeatureRelevanceResult {
   used_features: string[];
 }
 
-export function useImportantFeatures(
-  features: string[] = ["USIA", "PEKERJAAN", "PENDIDIKAN TERAKHIR"],
-  refreshKey = 0
-) {
+
+export function useImportantFeatures() {
   const [data, setData] = useState<FeatureRelevanceResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchImportance = async (features: string[]) => {
     if (!features || features.length === 0) return;
+
+    setLoading(true);
     setError(null);
     setData(null);
-    setLoading(true);
-    api
-      .get("/features", { params: { features } })
-      .then(res => setData(res.data))
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [features, refreshKey]); // added refreshKey
 
-  return { data, error, loading };
+    try {
+      const res = await api.get("/features", {
+        params: { features },
+        paramsSerializer: (params) =>
+          qs.stringify(params, { arrayFormat: "repeat" }),
+      });
+      setData(res.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { data, error, loading, fetchImportance };
 }

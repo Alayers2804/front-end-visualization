@@ -1,20 +1,10 @@
 import { useState } from "react";
 import { useProfilePlot, useProfileSummary } from "../hooks/useProfileFeature";
 
-const allAvailableFeatures = [
-  "USIA",
-  "PEKERJAAN",
-  "PENDIDIKAN TERAKHIR",
-  "PENGHASILAN",
-  "STATUS PERNIKAHAN",
-  "JUMLAH ANAK",
-  "LOKASI",
-  "PENGALAMAN KERJA",
-  "GENDER"
-];
 
 export default function ProfileImportance() {
   const [selected, setSelected] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const {
     images,
@@ -40,40 +30,24 @@ export default function ProfileImportance() {
     setSelected(prev => prev.filter(f => f !== feature));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    fetchPlot();
-    fetchSummary();
+    setLoading(true);
+
+    try {
+      await Promise.all([fetchPlot(), fetchSummary()]);
+    } finally {
+      setLoading(false);  // re-enable the button after fetch is done
+    }
   };
 
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-2xl font-semibold">Profil Feature Importance</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <p className="block font-medium mb-2">
-            Klik fitur untuk memilih (klik lagi untuk batal):
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {allAvailableFeatures.map(feature => {
-              const isSelected = selected.includes(feature);
-              return (
-                <button
-                  type="button"
-                  key={feature}
-                  onClick={() => toggleFeature(feature)}
-                  className={`px-3 py-1 rounded-full border text-sm transition ${isSelected
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                    }`}
-                >
-                  {feature}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <h2 className="text-2xl font-semibold">Klik tombol ini untuk menampilkan Profile Importance pada dataset yang dipilih</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-2">
 
         {selected.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
@@ -97,10 +71,10 @@ export default function ProfileImportance() {
 
         <button
           type="submit"
-          disabled={selected.length === 0}
+          disabled={loading}
           className="mt-4 px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          Tampilkan
+          {loading ? "Memuat..." : "Tampilkan"}
         </button>
       </form>
 
@@ -155,8 +129,8 @@ export default function ProfileImportance() {
           <table className="w-full border-collapse border text-sm">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border px-4 py-2 text-left">Feature</th>
-                <th className="border px-4 py-2 text-left">Details</th>
+                <th className="border px-4 py-2 text-left text-gray-700">Feature</th>
+                <th className="border px-4 py-2 text-left text-gray-700">Details</th>
               </tr>
             </thead>
             <tbody>

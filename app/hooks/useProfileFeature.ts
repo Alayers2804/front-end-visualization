@@ -11,17 +11,20 @@ export function useProfilePlot(features: string[], returnBase64 = true) {
   const fetchPlot = useCallback(() => {
     setError(null);
     setLoading(true);
-    api
+    return api
       .get("/profile-summary/plot", {
         params: { features, return_base64: returnBase64 }
       })
-      .then(res => setImages(res.data))
-      .catch(err => setError(err.message));
+      .then(res => {
+        setImages(res.data);
+        setError(null);
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false)); // Ensure loading is turned off
   }, [features, returnBase64]);
 
   return { images, error, retry: fetchPlot };
 }
-
 
 export function useProfileSummary() {
   const [summary, setSummary] = useState(null);
@@ -31,10 +34,14 @@ export function useProfileSummary() {
   const fetchSummary = useCallback(() => {
     setError(null);
     setLoading(true);
-    api
+    return api
       .get("/profile-summary")
-      .then(res => setSummary(res.data))
-      .catch(err => setError(err.message));
+      .then(res => {
+        setSummary(res.data);
+        setError(null);
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   return { summary, error, retry: fetchSummary };

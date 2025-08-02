@@ -6,4 +6,5 @@ export default [
   route("predictions", "routes/predictions.tsx"),       // '/predictions'
   route("add-data", "routes/new-data.tsx"),             // '/add-data'
   route("profile-importance", "routes/profile-importance.tsx"), // '/profile-importance'
+  route("settings", "routes/settings.tsx"), // '/settings'
 ] satisfies RouteConfig;
