@@ -1,20 +1,34 @@
 import { useState } from "react";
 import { useUploadDataset, useCreateSuspect } from "../hooks/useNewData";
+import FormInput from "../components/forminput";
 
 export default function AddData() {
   const [file, setFile] = useState<File | null>(null);
   const { upload, uploading, error, result } = useUploadDataset();
+
+
 
   const handleUpload = () => {
     if (file) upload(file);
   };
 
   const [formData, setFormData] = useState({
-    name: "",
-    age: "",
+    tanggal: "",
+    no_register: "",
+    nama_tersangka: "",
+    no_lkn: "",
     domisili: "",
-    gender: "",
+    pasal_disangkakan: "",
+    jenis_kelamin: "",
+    tempat_lahir: "",
+    tanggal_lahir: "",
+    agama: "",
+    usia: "",
+    pendidikan_terakhir: "",
+    pekerjaan: "",
+    rekomendasi_tat: "",
   });
+
 
   const { create, loading, error: createError, success } = useCreateSuspect();
 
@@ -26,12 +40,13 @@ export default function AddData() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.age || !formData.domisili || !formData.gender) return;
+    if (!formData.nama_tersangka || !formData.usia || !formData.domisili || !formData.jenis_kelamin) return;
+
     create({
-      name: formData.name,
-      age: parseInt(formData.age),
-      domisili: formData.domisili,
-      gender: formData.gender,
+      ...formData,
+      usia: parseInt(formData.usia),
+      tanggal: new Date(formData.tanggal),
+      tanggal_lahir: new Date(formData.tanggal_lahir),
     });
   };
 
@@ -43,81 +58,53 @@ export default function AddData() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">📝 1. Form Input Data Manual</h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white border border-gray-300 rounded-lg shadow p-6 space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="bg-white border p-6 space-y-6 rounded-lg shadow">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block font-medium text-gray-700 mb-1">
-                Nama Lengkap
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Contoh: Budi Santoso"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium text-gray-700 mb-1">
-                Umur
-              </label>
-              <input
-                type="number"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Contoh: 45"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium text-gray-700 mb-1">
-                Tempat Domisili
-              </label>
-              <input
-                type="text"
-                name="domisili"
-                value={formData.domisili}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Contoh: Jakarta Selatan"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium text-gray-700 mb-1">
-                Jenis Kelamin
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">-- Pilih Jenis Kelamin --</option>
-                <option value="L">Laki-laki</option>
-                <option value="P">Perempuan</option>
-              </select>
-            </div>
+            <FormInput label="Tanggal Penangkapan" name="tanggal" type="date" value={formData.tanggal} onChange={handleChange} required />
+            <FormInput label="No Register" name="no_register" value={formData.no_register} onChange={handleChange} required />
+            <FormInput label="Nama Tersangka" name="nama_tersangka" value={formData.nama_tersangka} onChange={handleChange} required />
+            <FormInput label="No LKN" name="no_lkn" value={formData.no_lkn} onChange={handleChange} required />
+            <FormInput label="Domisili" name="domisili" value={formData.domisili} onChange={handleChange} required />
+            <FormInput label="Pasal Disangkakan" name="pasal_disangkakan" value={formData.pasal_disangkakan} onChange={handleChange} required />
+            <FormInput
+              label="Jenis Kelamin"
+              name="jenis_kelamin"
+              value={formData.jenis_kelamin}
+              onChange={handleChange}
+              required
+              selectOptions={[
+                { label: "Laki-laki", value: "L" },
+                { label: "Perempuan", value: "P" },
+              ]}
+            />
+            <FormInput label="Tempat Lahir" name="tempat_lahir" value={formData.tempat_lahir} onChange={handleChange} required />
+            <FormInput label="Tanggal Lahir" name="tanggal_lahir" type="date" value={formData.tanggal_lahir} onChange={handleChange} required />
+            <FormInput
+              label="Agama"
+              name="agama"
+              value={formData.agama}
+              onChange={handleChange}
+              required
+              selectOptions={[
+                { label: "Islam", value: "Islam" },
+                { label: "Kristen", value: "Kristen" },
+                { label: "Katolik", value: "Katolik" },
+                { label: "Hindu", value: "Hindu" },
+                { label: "Budha", value: "Budha" },
+                { label: "Konghucu", value: "Konghucu" },
+              ]}
+            />
+            <FormInput label="Usia" name="usia" type="number" value={formData.usia} onChange={handleChange} required />
+            <FormInput label="Pendidikan Terakhir" name="pendidikan_terakhir" value={formData.pendidikan_terakhir} onChange={handleChange} required />
+            <FormInput label="Pekerjaan" name="pekerjaan" value={formData.pekerjaan} onChange={handleChange} required />
+            <FormInput label="Rekomendasi TAT" name="rekomendasi_tat" value={formData.rekomendasi_tat} onChange={handleChange} required />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 mt-4">
             <button
               type="submit"
               disabled={loading}
-              className={`px-6 py-2 rounded font-semibold text-white shadow ${loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+              className={`px-6 py-2 rounded font-semibold text-white shadow ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
                 }`}
             >
               {loading ? "Menyimpan..." : "Simpan Data"}
