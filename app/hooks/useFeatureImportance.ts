@@ -18,7 +18,8 @@ export function useFeaturePlot(
 
   useEffect(() => {
     if (!features || features.length === 0) return;
-
+    setError(null);
+    setPlot(null); 
     setLoading(true);
     api
       .get("/features/plot", {
@@ -53,7 +54,8 @@ export function useImportantFeatures(
 
   useEffect(() => {
     if (!features || features.length === 0) return;
-
+    setError(null);
+    setData(null);
     setLoading(true);
     api
       .get("/features", { params: { features } })
