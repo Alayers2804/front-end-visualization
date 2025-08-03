@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../lib/api";
+import { useDataset } from "../context/DatasetContext";
 
 interface ForecastItem {
   month: string;
@@ -15,13 +16,15 @@ export function usePredict() {
   const [data, setData] = useState<PredictResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedDataset } = useDataset();
+
 
   const fetch = async (nMonths = 2, targetColumn = "JUMLAH_KASUS") => {
     setLoading(true);
     setError(null);
     try {
       const res = await api.get<PredictResponse>("/predict", {
-        params: { n_months: nMonths, target_column: targetColumn }
+        params: { n_months: nMonths, target_column: targetColumn, dataset_id: selectedDataset?.id },
       });
       setData(res.data);
     } catch (err: any) {
@@ -57,13 +60,14 @@ export function usePredictionTest() {
   const [result, setResult] = useState<PredictionTestResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedDataset } = useDataset();
 
   const fetch = async (testSize = 3, targetColumn = "JUMLAH_KASUS") => {
     setLoading(true);
     setError(null);
     try {
       const res = await api.get("/predict/test", {
-        params: { test_size: testSize, target_column: targetColumn }
+        params: { test_size: testSize, target_column: targetColumn, dataset_id: selectedDataset?.id },
       });
       setResult(res.data);
     } catch (err: any) {
@@ -87,13 +91,14 @@ export function usePredictionPlot() {
   const [plotData, setPlotData] = useState<PredictionPlotResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedDataset } = useDataset();
 
   const fetch = async (nMonths = 2, targetColumn = "JUMLAH_KASUS", base64 = true) => {
     setLoading(true);
     setError(null);
     try {
       const res = await api.get("/predict/plot", {
-        params: { n_months: nMonths, target_column: targetColumn, return_base64: base64 }
+        params: { n_months: nMonths, target_column: targetColumn, return_base64: base64, dataset_id: selectedDataset?.id },
       });
       setPlotData(res.data);
     } catch (err: any) {
@@ -114,6 +119,7 @@ export function usePredictByArea(
   const [forecast, setForecast] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedDataset } = useDataset();
 
   const fetch = async () => {
     if (!area) return;
@@ -121,7 +127,7 @@ export function usePredictByArea(
     setError(null);
     try {
       const res = await api.get("/predict/predict-by-area", {
-        params: { area, n_months: nMonths, target_column: targetColumn }
+        params: { area, n_months: nMonths, target_column: targetColumn, dataset_id: selectedDataset?.id },
       });
       if (res.data.error) {
         setError(res.data.error);
@@ -147,6 +153,7 @@ export function useAvailableAreas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const { selectedDataset } = useDataset();
 
   const retry = () => setRetryKey(prev => prev + 1);
 
@@ -155,7 +162,9 @@ export function useAvailableAreas() {
       setError(null);
       setLoading(true);
       try {
-        const res = await api.get("/predict/available-areas");
+        const res = await api.get("/predict/available-areas", {
+          params: { dataset_id: selectedDataset?.id },
+        });
         setAreas(res.data.areas || []);
       } catch (err: any) {
         setError(err.message || "Error fetching areas");
@@ -180,6 +189,7 @@ export function useHeatmap(month?: string, retryKey = 0) {
   const [imageUrl, setImageUrl] = useState<HeatmapResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { selectedDataset } = useDataset();
 
   useEffect(() => {
     const fetchHeatmap = async () => {
@@ -189,8 +199,11 @@ export function useHeatmap(month?: string, retryKey = 0) {
 
       try {
         const response = await api.get("/predict/heatmap", {
-          params: month ? { month } : {},
+          params: month ? { month, dataset_id: selectedDataset?.id } : { dataset_id: selectedDataset?.id },
         });
+
+        if (!selectedDataset?.id) return { imageUrl: null, loading: false, error: "Dataset not selected" };
+
 
         if (response.data?.error) {
           setError(response.data.error);
