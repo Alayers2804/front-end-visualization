@@ -11,6 +11,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { NavBar } from "./components/navbar";
 import { Footer } from "./components/footbar";
+import { DatasetProvider } from "./context/DatasetContext";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -43,21 +44,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 export default function App() {
   return (
-    <div className="h-screen flex flex-row overflow-hidden">
-      <NavBar />
+    <DatasetProvider>
+      <div className="h-screen flex flex-row overflow-hidden">
+        <NavBar />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-6 py-8">
-            <Outlet />
-          </div>
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto">
+            <div className="container mx-auto px-6 py-8">
+              <Outlet />
+            </div>
+          </main>
 
-        <Footer />
+          <Footer />
+        </div>
       </div>
-    </div>
+    </DatasetProvider>
   );
 }
 

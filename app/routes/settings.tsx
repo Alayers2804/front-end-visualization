@@ -1,11 +1,11 @@
-import { useState } from "react";
 import { useListDatasets } from "../hooks/useSettings";
+import { useDataset } from "../context/DatasetContext";
 
 export default function Settings() {
   const { datasets, loading, error } = useListDatasets();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { selectedDataset, setSelectedDataset } = useDataset();
 
-  const selectedDataset = datasets.find((d) => d.filename === selected);
+  const selected = selectedDataset?.filename ?? "";
 
   return (
     <section className="max-w-2xl mx-auto p-6 space-y-8">
@@ -27,8 +27,13 @@ export default function Settings() {
 
         {!loading && datasets.length > 0 && (
           <select
-            value={selected || ""}
-            onChange={(e) => setSelected(e.target.value)}
+            value={selected}
+            onChange={(e) => {
+              const dataset = datasets.find(d => d.filename === e.target.value);
+              if (dataset) {
+                setSelectedDataset(dataset);
+              }
+            }}
             className="w-full bg-white border border-gray-400 rounded-md p-3 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">-- Pilih Dataset --</option>
