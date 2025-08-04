@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { usePredict, usePredictionPlot, usePredictionTest, useAvailableAreas, usePredictByArea } from "../hooks/usePredictions";
-import HeatmapViewer from "../components/heatmapviewer";
+import { usePredict, usePredictionPlot, usePredictionTest, useAvailableAreas, usePredictByArea, useHeatmap } from "../hooks/usePredictions";
+import HeatmapViewer from "../components/heatmapViewer";
+import { downloadImagesAsZip } from "~/lib/imageDownload";
 
 export default function Predictions() {
   const [nMonths, setNMonths] = useState(2);
@@ -10,6 +11,7 @@ export default function Predictions() {
   const { data: predictData, loading: predictLoading, error: predictError, fetch: fetchPredict } = usePredict();
   const { result: testResult, loading: testLoading, error: testError, fetch: fetchTest } = usePredictionTest();
   const { plotData, loading: plotLoading, error: plotError, fetch: fetchPlot } = usePredictionPlot();
+  const { imageUrl } = useHeatmap();
   const [hasFetched, setHasFetched] = useState(false);
 
   const handleFetchAll = () => {
@@ -18,6 +20,8 @@ export default function Predictions() {
     fetchPlot(nMonths);
   };
   const { areas, loading: areasLoading, error: areasError, retry: retryAreas } = useAvailableAreas();
+
+
 
   const {
     forecast,
@@ -162,8 +166,8 @@ export default function Predictions() {
               }}
               disabled={!selectedArea}
               className={`mt-3 px-4 py-2 rounded text-white ${!selectedArea
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
                 }`}
             >
               🔍 Tampilkan Prediksi Area
@@ -209,8 +213,30 @@ export default function Predictions() {
       {/* 5. Unduh Semua */}
       <div className="pt-6">
         <h2 className="text-2xl font-semibold mb-2">5. Unduh Seluruh Hasil Prediksi</h2>
-        <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-          📁 Unduh Semua Gambar Prediksi (.zip)
+        <button
+          onClick={() => {
+            const images: Record<string, string> = {};
+
+            if (plotData?.image_base64) {
+              images["plot_prediksi"] = plotData.image_base64;
+            }
+            if (imageUrl?.full_map_base64) {
+              images["heatmap_semua_area"] = imageUrl.full_map_base64;
+            }
+            if (imageUrl?.focused_map_base64) {
+              images["heatmap_area_terfokus"] = imageUrl.focused_map_base64;
+            }
+
+            if (Object.keys(images).length === 0) {
+              alert("Belum ada gambar untuk diunduh.");
+              return;
+            }
+
+            downloadImagesAsZip(images);
+          }}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          📁 Unduh Semua Gambar (.zip)
         </button>
       </div>
     </section>
