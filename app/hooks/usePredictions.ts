@@ -50,35 +50,35 @@ interface EvaluationMetrics {
   mape: string; // already formatted with "%"
 }
 
-interface PredictionTestResponse {
-  evaluation: EvaluationMetrics;
-  target_column: string;
-  actual_vs_predicted: ActualVsPredicted[];
-}
+  interface PredictionTestResponse {
+    evaluation: EvaluationMetrics;
+    target_column: string;
+    actual_vs_predicted: ActualVsPredicted[];
+  }
 
-export function usePredictionTest() {
-  const [result, setResult] = useState<PredictionTestResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { selectedDataset } = useDataset();
+  export function usePredictionTest() {
+    const [result, setResult] = useState<PredictionTestResponse | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const { selectedDataset } = useDataset();
 
-  const fetch = async (testSize = 3, targetColumn = "JUMLAH_KASUS") => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.get("/predict/test", {
-        params: { test_size: testSize, target_column: targetColumn, dataset_id: selectedDataset?.id },
-      });
-      setResult(res.data);
-    } catch (err: any) {
-      setError(err.message || "Error testing prediction");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetch = async (testSize = 3, targetColumn = "JUMLAH_KASUS") => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.get("/predict/test", {
+          params: { test_size: testSize, target_column: targetColumn, dataset_id: selectedDataset?.id },
+        });
+        setResult(res.data);
+      } catch (err: any) {
+        setError(err.message || "Error testing prediction");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  return { result, loading, error, fetch };
-}
+    return { result, loading, error, fetch };
+  }
 
 
 interface PredictionPlotResponse {
@@ -181,12 +181,12 @@ export function useAvailableAreas() {
 }
 
 interface HeatmapResponse {
-  full_map_base64?: string;
-  focused_map_base64?: string;
+  map_html?: string;
+  error?: string;
 }
 
 export function useHeatmap(month?: string, retryKey = 0) {
-  const [imageUrl, setImageUrl] = useState<HeatmapResponse | null>(null);
+  const [mapHtml, setMapHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { selectedDataset } = useDataset();
@@ -194,23 +194,25 @@ export function useHeatmap(month?: string, retryKey = 0) {
   useEffect(() => {
     const fetchHeatmap = async () => {
       setError(null);
-      setImageUrl(null);
+      setMapHtml(null);
       setLoading(true);
 
       try {
+        if (!selectedDataset?.id) {
+          setError("Dataset not selected");
+          return;
+        }
+
         const response = await api.get("/predict/heatmap", {
-          params: month ? { month, dataset_id: selectedDataset?.id } : { dataset_id: selectedDataset?.id },
+          params: month ? { month, dataset_id: selectedDataset.id } : { dataset_id: selectedDataset.id },
         });
-
-        if (!selectedDataset?.id) return { imageUrl: null, loading: false, error: "Dataset not selected" };
-
 
         if (response.data?.error) {
           setError(response.data.error);
           return;
         }
 
-        setImageUrl(response.data);
+        setMapHtml(response.data.map_html);
       } catch (err: any) {
         setError(err.message || "Gagal memuat heatmap");
       } finally {
@@ -221,5 +223,5 @@ export function useHeatmap(month?: string, retryKey = 0) {
     fetchHeatmap();
   }, [month, retryKey]);
 
-  return { imageUrl, loading, error };
+  return { mapHtml, loading, error };
 }
